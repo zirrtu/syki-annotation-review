@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; media-src 'self' blob: data:; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; media-src 'self' blob: data:; connect-src https://api.github.com https://syki-annotation-review-backend.jxi15089.chatgpt.site; base-uri 'none'; form-action 'none'">
 <title>SYKI 语音标注审核</title>
 <style>
 :root{font-family:Inter,"Microsoft YaHei",system-ui,sans-serif;color:#24302e;background:#f5f7f6;font-size:14px;line-height:1.45}
@@ -45,9 +45,9 @@ dialog{border:0;border-radius:7px;width:min(490px,calc(100% - 32px));padding:0;b
     <div class="draft-footer"><label><input type="checkbox" id="textMismatch">文本与音频不一致，需另行处理</label><div class="button-row"><button class="icon-btn" id="undoButton" type="button" title="撤销上一步" aria-label="撤销上一步"><svg viewBox="0 0 24 24"><path d="M3 7v6h6"></path><path d="M3 13a9 9 0 1 1 2.7 6.4"></path></svg></button><button class="btn primary" id="submitButton" type="button">提交审核</button><button class="btn primary" id="nextButton" type="button" hidden>随机领取</button></div></div><div class="notice" id="notice" role="status"></div>
   </main>
 </div>
-<dialog id="githubDialog"><div class="dialog-inner"><h2>连接 GitHub 私有仓库</h2><p>每位审核员使用自己的 GitHub 账号令牌。音频、标注和审核结果保存在私有仓库。</p><label class="form-field">仓库 <input id="repoInput" type="text" placeholder="owner/repository" autocomplete="off" spellcheck="false"></label><label class="form-field">个人访问令牌 <input id="tokenInput" type="password" autocomplete="new-password" spellcheck="false"></label><p style="margin-top:12px">需要仓库读写权限。协作者可能需要 classic repo 令牌，建议使用独立账号和短期令牌。令牌仅保存在本页内存中。</p><div id="githubError" class="dialog-error" role="alert"></div><div class="dialog-actions"><button class="btn" id="cancelGithub" type="button">取消</button><button class="btn primary" id="connectGithub" type="button">连接</button></div></div></dialog>
-<dialog id="helpDialog"><div class="dialog-inner"><h2>审核与协作</h2><ul class="help-list"><li>点击文字的左侧或右侧，在出现的位置输入漏字并按回车；可使用撤销恢复。</li><li>直接拖动文字中的标签块；点击标签可切换情感或删除已有标签。句首情感固定，只能切换。</li><li>连接私有仓库后，页面会读取分配任务的 MP3 音频。</li><li>多人共用同一私有仓库、同一数据集；每人使用自己的令牌。提交结果保存在仓库。</li><li>已领取但未完成的任务保留给领取人，重新连接可继续；不自动过期。</li><li>GitHub 仅适合小规模试用，使用者有仓库写权限，不提供强制的细粒度权限隔离。</li></ul><div class="dialog-actions"><button class="btn primary" id="closeHelp" type="button">知道了</button></div></div></dialog>
-<script id="payload" type="application/json">{"online":true,"repo":"zirrtu/syki-annotation-review-data","demo":[],"full":[],"audio":{}}</script>
+<dialog id="githubDialog"><div class="dialog-inner"><h2>连接 GitHub 私有仓库</h2><p>输入暗号后即可进入审核。</p><label class="form-field">仓库 <input id="repoInput" type="text" placeholder="owner/repository" autocomplete="off" spellcheck="false"></label><label class="form-field">个人访问令牌 <input id="tokenInput" type="password" autocomplete="new-password" spellcheck="false"></label><p style="margin-top:12px">审核进度会自动保存；刷新后重新输入暗号即可继续。</p><div id="githubError" class="dialog-error" role="alert"></div><div class="dialog-actions"><button class="btn" id="cancelGithub" type="button">取消</button><button class="btn primary" id="connectGithub" type="button">连接</button></div></div></dialog>
+<dialog id="helpDialog"><div class="dialog-inner"><h2>审核与协作</h2><ul class="help-list"><li>点击文字的左侧或右侧，在出现的位置输入漏字并按回车；可使用撤销恢复。</li><li>直接拖动文字中的标签块；点击标签可切换情感或删除已有标签。句首情感固定，只能切换。</li><li>进入后会自动读取分配任务的 MP3 音频。</li><li>多人共用同一任务池，已完成的句子不会重复分配。</li><li>已领取但未完成的任务保留给领取人，重新连接可继续；不自动过期。</li><li>同一浏览器会保留领取记录，换设备后请联系管理员处理未完成任务。</li></ul><div class="dialog-actions"><button class="btn primary" id="closeHelp" type="button">知道了</button></div></div></dialog>
+<script id="payload" type="application/json">{"online":true,"repo":"zirrtu/syki-annotation-review-data","demo":[],"full":[],"audio":{},"passwordMode":true,"backend":"https://syki-annotation-review-backend.jxi15089.chatgpt.site"}</script>
 <script>
 'use strict';
 const payload = JSON.parse(document.getElementById('payload').textContent);
@@ -391,6 +391,38 @@ class GitHubClient{
     return new Blob([blob],{type:'audio/mpeg'});
   }
 }
+class PasscodeClient{
+  constructor(base){this.base=base;this.token='';this.user=''}
+  async request(method,path,body,signal){
+    const headers={};if(this.token)headers.Authorization='Bearer '+this.token;
+    if(body!==undefined)headers['Content-Type']='application/json';
+    let response;
+    try{response=await fetch(this.base+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body),signal})}
+    catch(err){if(err.name==='AbortError')throw err;throw new ApiError('无法连接审核后台，请稍后重试。',0)}
+    const data=await response.json().catch(()=>null);
+    if(!response.ok)throw new ApiError(data?.error||'后台请求失败（HTTP '+response.status+'）。',response.status);
+    return data;
+  }
+  async connect(code){
+    let id=localStorage.getItem('syki-reviewer-id-v1');
+    if(!id||!/^[0-9a-f-]{36}$/i.test(id)){
+      if(crypto.randomUUID)id=crypto.randomUUID();else{const h=[...crypto.getRandomValues(new Uint8Array(16))].map(v=>v.toString(16).padStart(2,'0')).join('');id=h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20)}
+      localStorage.setItem('syki-reviewer-id-v1',id);
+    }
+    const result=await this.request('POST','/api/login',{code,reviewer_id:id});this.token=result.token;this.user=result.reviewer_id;return result.counts;
+  }
+  claim(){return this.request('POST','/api/claim')}
+  submit(result){return this.request('POST','/api/submit',result)}
+  exportPage(offset){return this.request('GET','/api/export?offset='+offset)}
+  async readAudio(wav,signal,id){
+    let response;try{response=await fetch(this.base+'/api/audio?id='+encodeURIComponent(id),{headers:{Authorization:'Bearer '+this.token},signal})}
+    catch(err){if(err.name==='AbortError')throw err;throw new Error('音频连接失败，请重试。')}
+    if(!response.ok){const data=await response.json().catch(()=>null);throw new Error(data?.error||'音频读取失败。')}
+    const blob=await response.blob(),head=new Uint8Array(await blob.slice(0,3).arrayBuffer());
+    if(head.length<3||!(head[0]===0x49&&head[1]===0x44&&head[2]===0x33||head[0]===0xff&&(head[1]&0xe0)===0xe0))throw new Error('音频内容无效。');
+    return new Blob([blob],{type:'audio/mpeg'});
+  }
+}
 async function loadOnlineManifest(client){
   const file=await client.read('dataset/manifest.json'),data=file?.data;
   if(!data||data.format!=='syki-review-dataset'||data.version!==1||!Array.isArray(data.tasks)||data.tasks.length!==5062)throw new Error('私有数据集不完整或格式不正确。');
@@ -448,6 +480,10 @@ function refreshCounts(state){
   $('claimed').textContent=String(claimed);
   $('progressBar').style.width=(S.tasks.length?100*done/S.tasks.length:0)+'%';
 }
+function refreshServiceCounts(counts){
+  const total=Number(counts?.total||0),done=Number(counts?.done||0),claimed=Number(counts?.claimed||0);S.summary={done,claimed};
+  $('completed').textContent=done+' / '+total;$('claimed').textContent=String(claimed);$('progressBar').style.width=(total?100*done/total:0)+'%';
+}
 async function acquireTask(){
   const changed=await mutateState(state=>{
     const owned=Object.entries(state.items).find(([id,v])=>v.status==='claimed'&&v.owner===S.user&&S.taskMap.has(id));
@@ -479,6 +515,12 @@ function checkExistingResult(result,id,claim){
 async function claimAndLoad(){
   if(S.busy)return;setBusy(true);notice('');
   try{
+    if(S.mode==='backend'){
+      const next=await S.client.claim();refreshServiceCounts(next.counts);
+      if(!next.task){S.task=null;S.claim=null;S.parsed=null;S.chars=[];S.labels=[];S.selected=null;S.insertion=null;renderTask();notice('当前没有可领取的任务。');return}
+      S.task=next.task;S.claim=next.claim;S.parsed=parseAnnotated(next.task.annotated);S.chars=[...S.parsed.chars];S.labels=clone(S.parsed.labels);S.selected=null;S.history=[];S.pending=null;S.insertion=null;$('textMismatch').checked=false;
+      loadDraft();renderTask();return;
+    }
     for(let i=0;i<3;i++){
       const next=await acquireTask();
       if(!next){S.task=null;S.claim=null;S.chars=[];S.labels=[];S.selected=null;S.insertion=null;renderTask();notice('当前没有可领取的任务。');return}
@@ -495,9 +537,10 @@ async function claimAndLoad(){
   }catch(err){notice(err.message)}finally{setBusy(false)}
 }
 function makeResult(){
-  return {format:'syki-review-result',version:1,dataset:S.fingerprint,task_id:S.task.id,wav:S.task.wav,reviewer:S.user,claim:S.claim,submission_id:randomId(),submitted_at:new Date().toISOString(),needs_text_review:$('textMismatch').checked,source_annotated:S.task.annotated,source_text:S.parsed.chars.join(''),reviewed_text:S.chars.join(''),text_changed:S.chars.join('')!==S.parsed.chars.join(''),reviewed_annotated:serialize(S.parsed,S.labels,S.chars),labels:S.labels.map(l=>clone(l))};
+  return {format:'syki-review-result',version:1,dataset:S.fingerprint,task_id:S.task.id,wav:S.task.wav,reviewer:S.user,claim:S.claim,submission_id:randomId(),submitted_at:new Date().toISOString(),needs_text_review:$('textMismatch').checked,source_annotated:S.task.annotated,source_text:S.parsed.chars.join(''),reviewed_text:S.chars.join(''),text_changed:S.chars.join('')!==S.parsed.chars.join(''),reviewed_annotated:serialize(S.parsed,S.labels,S.chars),labels:S.labels.map(l=>clone(l)),chars:[...S.chars]};
 }
 async function saveResult(result){
+  if(S.mode==='backend'){const saved=await S.client.submit(result);refreshServiceCounts(saved.counts);return}
   if(S.mode==='local'){
     const changed=await mutateState(state=>{
       const row=state.items[result.task_id];
@@ -545,12 +588,12 @@ function updateAudio(){
   const embedded=payload.audio[S.task.id];
   const key=S.task.wav.replace(/^wav\//,'');
   const local=S.audioMap.get(key);
-  const online=Boolean(payload.online&&S.mode==='github'&&S.client);
+  const online=Boolean(payload.online&&['github','backend'].includes(S.mode)&&S.client);
   if(local){S.audioUrl=URL.createObjectURL(local);audio.src=S.audioUrl;$('audioStatus').textContent='音频加载中'}
   else if(S.dataset==='demo'&&embedded){audio.src='data:audio/wav;base64,'+embedded;$('audioStatus').textContent='音频加载中'}
   else if(online){
     const client=S.client,controller=new AbortController();S.audioAbort=controller;$('audioStatus').textContent='正在读取私有音频';
-    client.readAudio(S.task.wav,controller.signal).then(blob=>{
+    client.readAudio(S.task.wav,controller.signal,taskId).then(blob=>{
       if(controller.signal.aborted||S.client!==client||!S.task||S.task.id!==taskId)return;
       S.audioAbort=null;S.audioUrl=URL.createObjectURL(blob);audio.src=S.audioUrl;audio.load();
     }).catch(err=>{if(err.name!=='AbortError'&&S.task&&S.task.id===taskId){S.audioAbort=null;S.audioAvailable=false;$('audioStatus').textContent=err.message+' 刷新页面可重试';syncDisabled()}});
@@ -558,7 +601,7 @@ function updateAudio(){
   audio.onloadedmetadata=()=>{
     if(!S.task||S.task.id!==taskId)return;
     if(!Number.isFinite(audio.duration)||Math.abs(audio.duration-expected)>.15){S.audioAvailable=false;$('audioStatus').textContent='音频时长不符，请检查文件'}
-    else{S.audioAvailable=true;$('audioStatus').textContent=local?'已绑定音频':online?'私有仓库音频':'内置体验音频'}
+    else{S.audioAvailable=true;$('audioStatus').textContent=local?'已绑定音频':online?(S.mode==='backend'?'在线音频':'私有仓库音频'):'内置体验音频'}
     syncDisabled();
   };
   audio.onerror=()=>{if(S.task&&S.task.id===taskId){S.audioAvailable=false;$('audioStatus').textContent='音频加载失败';syncDisabled()}};
@@ -618,6 +661,11 @@ async function exportResults(){
   if(S.busy)return;setBusy(true);notice('');
   let results=[];
   try{
+    if(S.mode==='backend'){
+      let offset=0;do{const page=await S.client.exportPage(offset);results.push(...page.results);offset=page.next}while(offset!==null);
+      if(!results.length){notice('还没有已完成的结果。');return}
+      download('syki_review_completed.jsonl',results.map(x=>JSON.stringify(x)).join('\n')+'\n');notice('已导出 '+results.length+' 条审核结果。');return;
+    }
     const state=(await readState()).data;refreshCounts(state);
     const ids=Object.entries(state.items).filter(([,v])=>v.status==='done').map(([id])=>id);
     if(!ids.length){notice('还没有已完成的结果。');return}
@@ -646,10 +694,10 @@ $('exportButton').addEventListener('click',exportResults);
 $('undoButton').addEventListener('click',()=>{if(S.insertion){cancelInsertion();return}if(!S.history.length||S.pending||S.busy)return;const previous=S.history.pop();S.labels=previous.labels;S.chars=previous.chars;saveDraft();notice('');renderEditor()});
 $('githubButton').addEventListener('click',()=>{
   if(S.insertion&&!finishInsertion())return;
-  if(S.mode==='github'){
-    if(S.task&&(S.pending||!isUnchanged(S.parsed.labels,S.labels)||S.chars.join('')!==S.parsed.chars.join('')||$('textMismatch').checked)&&!confirm('当前任务仍保留在 GitHub，你可以重新连接继续。断开吗？'))return;
-    saveDraft();S.client=null;S.mode='local';S.user='local';$('identity').textContent=payload.online?'请连接 GitHub':'本机试用 · 不共享';$('githubButton').textContent='GitHub 协作';S.task=null;S.parsed=null;S.chars=[];S.labels=[];S.history=[];S.claim=null;S.selected=null;S.pending=null;S.insertion=null;
-    if(payload.online){S.tasks=[];S.taskMap=new Map();S.fingerprint='';$('completed').textContent='0 / 5062';$('claimed').textContent='0';$('progressBar').style.width='0%';renderTask();notice('请连接 GitHub 私有仓库。')}
+  if(S.mode==='github'||S.mode==='backend'){
+    if(S.task&&(S.pending||!isUnchanged(S.parsed.labels,S.labels)||S.chars.join('')!==S.parsed.chars.join('')||$('textMismatch').checked)&&!confirm(payload.passwordMode?'当前任务和本页草稿会保留，重新输入暗号可以继续。退出吗？':'当前任务仍保留在 GitHub，你可以重新连接继续。断开吗？'))return;
+    saveDraft();S.client=null;S.mode='local';S.user='local';$('identity').textContent=payload.passwordMode?'请输入暗号':payload.online?'请连接 GitHub':'本机试用 · 不共享';$('githubButton').textContent=payload.passwordMode?'输入暗号':'GitHub 协作';S.task=null;S.parsed=null;S.chars=[];S.labels=[];S.history=[];S.claim=null;S.selected=null;S.pending=null;S.insertion=null;
+    if(payload.online){S.tasks=[];S.taskMap=new Map();S.fingerprint='';$('completed').textContent='0 / 5062';$('claimed').textContent='0';$('progressBar').style.width='0%';renderTask();notice(payload.passwordMode?'请输入暗号。':'请连接 GitHub 私有仓库。')}
     else{renderTask();claimAndLoad()}return;
   }
   $('githubError').textContent='';$('githubDialog').showModal();
@@ -657,9 +705,15 @@ $('githubButton').addEventListener('click',()=>{
 $('cancelGithub').addEventListener('click',()=>{$('tokenInput').value='';$('githubDialog').close()});
 $('connectGithub').addEventListener('click',async()=>{
   const repo=$('repoInput').value.trim(), token=$('tokenInput').value.trim();
-  if(!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)||!token){$('githubError').textContent='请填写 owner/repository 和访问令牌。';return}
+  if(payload.passwordMode?!token:(!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)||!token)){$('githubError').textContent=payload.passwordMode?'请输入暗号。':'请填写 owner/repository 和访问令牌。';return}
   $('connectGithub').disabled=true;$('githubError').textContent='正在连接…';
   try{
+    if(payload.passwordMode){
+      const client=new PasscodeClient(payload.backend),counts=await client.connect(token);
+      if(S.task)saveDraft();S.client=client;S.mode='backend';S.user=client.user;S.dataset='full';S.tasks=[];S.taskMap=new Map();S.fingerprint='syki-online-review-v1';
+      S.task=null;S.claim=null;S.parsed=null;S.chars=[];S.labels=[];S.history=[];S.selected=null;S.pending=null;S.insertion=null;
+      $('tokenInput').value='';$('githubDialog').close();$('identity').textContent='已连接';$('githubButton').textContent='退出';refreshServiceCounts(counts);renderTask();await claimAndLoad();return;
+    }
     const client=new GitHubClient(repo,token);await client.connect();
     const tasks=payload.online?await loadOnlineManifest(client):null;
     const fingerprint=tasks?await hashText(JSON.stringify(tasks)):null;
@@ -676,10 +730,11 @@ window.addEventListener('beforeunload',()=>{if(S.task)saveDraft()});
 
 window.__sykiReviewTest={parseAnnotated,serialize,getState:()=>S,switchDataset,claimAndLoad,submitTask,moveLabel,updateEmotion,toggleDelete};
 if(payload.online){
-  $('identity').textContent='请连接 GitHub';$('repoInput').value=payload.repo;$('repoInput').readOnly=true;
+  $('identity').textContent=payload.passwordMode?'请输入暗号':'请连接 GitHub';$('repoInput').value=payload.repo||'';$('repoInput').readOnly=true;
+  if(payload.passwordMode){$('repoInput').closest('label').hidden=true;$('githubButton').textContent='输入暗号';$('githubDialog').querySelector('h2').textContent='输入暗号';$('tokenInput').closest('label').firstChild.textContent='暗号 ';$('connectGithub').textContent='进入'}
   $('demoSet').hidden=true;$('fullSet').classList.add('active');$('fullSet').textContent='完整 5062 条';$('audioFolder').closest('label').hidden=true;
   $('audioCount').textContent='连接后读取私有音频';$('completed').textContent='0 / 5062';$('nextButton').hidden=true;$('submitButton').hidden=true;
-  $('taskTitle').textContent='连接 GitHub 后开始';$('taskMeta').textContent='';$('taskStatus').textContent='未连接';$('transcript').textContent='';notice('请连接 GitHub 私有仓库。');
+  $('taskTitle').textContent=payload.passwordMode?'输入暗号后开始':'连接 GitHub 后开始';$('taskMeta').textContent='';$('taskStatus').textContent='未连接';$('transcript').textContent='';notice(payload.passwordMode?'请输入暗号。':'请连接 GitHub 私有仓库。');
   syncDisabled();
   $('githubDialog').showModal();
 }else switchDataset('demo').catch(err=>{notice(err.message);$('taskTitle').textContent='初始化失败'});
