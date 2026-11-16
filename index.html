@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; media-src 'self' blob: data:; connect-src https://api.github.com; base-uri 'none'; form-action 'none'">
+<title>SYKI 语音标注审核</title>
+<style>
+:root{font-family:Inter,"Microsoft YaHei",system-ui,sans-serif;color:#24302e;background:#f5f7f6;font-size:14px;line-height:1.45}
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}
+.app-header{height:58px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:#fff;border-bottom:1px solid #dce4e1;padding:0 24px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;white-space:nowrap}.brand-mark{display:grid;place-items:center;width:28px;height:28px;border-radius:5px;background:#21594f;color:#fff;font-size:13px}
+.header-actions,.button-row,.inline{display:flex;align-items:center;gap:9px}.mode-status{font-size:12px;color:#666f6c;white-space:nowrap}
+.btn,.icon-btn,.seg-btn{border:1px solid #d2dcda;background:#fff;color:#273832;border-radius:5px;height:34px;padding:0 11px;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-weight:600;white-space:nowrap}
+.btn:hover,.icon-btn:hover,.seg-btn:hover{background:#f2f7f5}.btn.primary{background:#23685a;border-color:#23685a;color:white}.btn.primary:hover{background:#1c584c}.btn.danger{color:#a13d2e;border-color:#eccfc9}.icon-btn{width:32px;height:32px;padding:0}.icon-btn svg,.btn svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.workspace{max-width:1260px;margin:0 auto;padding:24px;display:grid;grid-template-columns:218px minmax(0,1fr);gap:24px;align-items:start}
+.side{min-width:0}.eyebrow{font-size:11px;color:#77847e;text-transform:uppercase;letter-spacing:0;font-weight:700;margin:0 0 11px}
+.side-section{padding:0 0 21px;margin-bottom:21px;border-bottom:1px solid #dfe6e3}.side-section:last-child{border:0}.segment{display:flex;border:1px solid #d2dcda;border-radius:5px;background:#e9efed;padding:3px;gap:2px}.seg-btn{height:29px;flex:1;border:0;padding:0 6px;background:transparent;color:#65716d;font-size:12px}.seg-btn.active{background:white;color:#1e5d51;box-shadow:0 1px 3px #1f41341a}
+.meta-row{display:flex;justify-content:space-between;gap:8px;color:#64716b;margin:9px 0;font-size:13px}.meta-row strong{color:#2a3932;font-weight:650}.progress{height:6px;border-radius:3px;background:#dce7e2;margin:12px 0}.progress span{height:100%;display:block;background:#498b77;border-radius:3px;width:0}.sidebar-buttons{display:grid;gap:8px}.sidebar-buttons .btn{justify-content:flex-start;width:100%}.file-label{position:relative;overflow:hidden}.file-label input{position:absolute;width:1px;height:1px;opacity:0}
+.center{min-width:0}.task-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:15px}.task-head h1{font-size:20px;margin:0 0 4px;line-height:1.3}.subtle{color:#788580;font-size:12px}.state-pill{display:inline-flex;align-items:center;gap:6px;border-radius:4px;padding:4px 8px;color:#256753;background:#e2f0e8;font-size:12px;font-weight:600}.state-pill:before{content:"";width:6px;height:6px;background:currentColor;border-radius:50%}
+.surface{background:#fff;border:1px solid #dfe7e3;border-radius:7px}.audio-bar{padding:16px 18px;display:flex;gap:16px;align-items:center;margin-bottom:16px}.audio-icon{width:38px;height:38px;display:grid;place-items:center;background:#edf5f2;color:#287460;border-radius:5px}.audio-icon svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8}.audio-content{min-width:0;flex:1}.audio-meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#75847d;margin-bottom:3px}audio{display:block;width:100%;height:35px}
+.editor{padding:21px 22px;min-height:290px}.editor-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}.editor-top h2{margin:0;font-size:14px}.legend{display:flex;gap:12px;flex-wrap:wrap;color:#77837e;font-size:11px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:1px}.dot.emotion{background:#d48a50}.dot.span{background:#5e9f8b}.dot.event{background:#6b88b4}
+.transcript{font-size:17px;line-height:2.7;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;min-height:150px;padding-bottom:6px;color:#273733}.glyph{white-space:pre-wrap;border-bottom:2px solid transparent;cursor:text}.glyph.active{background:#e2f3e9;border-bottom-color:#317c62}.glyph:hover{background:#edf5ef}
+.marker{display:inline-flex;align-items:center;vertical-align:2px;min-height:26px;padding:2px 6px;margin:0 2px;border:1px solid #a8d4c3;border-radius:4px;background:#e6f4ed;color:#246a54;font:600 12px ui-monospace,Consolas,monospace;white-space:nowrap;user-select:none;touch-action:none;cursor:grab}.marker:active{cursor:grabbing}.marker.emotion{background:#fff2e5;border-color:#ebcfb4;color:#995a2c}.marker.event{background:#edf3fb;border-color:#d1dff2;color:#496c9a}.marker.selected{outline:2px solid #68a590;outline-offset:1px}.marker.pinned{cursor:pointer}.marker:focus-visible{outline:2px solid #205c4c;outline-offset:2px}
+.glyph.drop-before{box-shadow:inset 2px 0 #277b60}.glyph.drop-after{box-shadow:inset -2px 0 #277b60}.marker.drop-at{outline:2px solid #277b60;outline-offset:1px}
+.insert-slot{display:inline-flex;align-items:center;gap:3px;vertical-align:2px;padding:2px 4px;margin:0 2px;border:1px solid #7aaf9c;border-radius:4px;background:#f4faf6;line-height:1}.insert-slot input{width:6.5em;max-width:38vw;height:26px;padding:0 4px;border:0;outline:0;background:transparent;color:#24302e;font:inherit;font-size:14px}.insert-slot button{width:24px;height:24px;display:grid;place-items:center;padding:3px;border:0;border-radius:3px;background:transparent;color:#386e5c}.insert-slot button:hover{background:#deeee5}.insert-slot svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.empty{padding:50px 0;color:#89968f;text-align:center}.draft-footer{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:15px;flex-wrap:wrap}.draft-footer label{font-size:12px;color:#6b7772;display:flex;align-items:center;gap:6px}.draft-footer input{accent-color:#26715f}.notice{min-height:20px;color:#aa563d;font-size:12px;margin-top:8px;white-space:pre-wrap}
+.selection{display:flex;align-items:center;gap:9px;flex-wrap:wrap;border-top:1px solid #e5ece8;margin-top:12px;padding-top:14px}.selection-title{font-size:13px;font-weight:650;color:#40544b;margin-right:3px}.emotion-choices{display:flex;flex-wrap:wrap;gap:5px}.emotion-choice{border:1px solid #d9e2dd;background:#fff;color:#4a5b53;border-radius:4px;min-width:32px;height:32px;font-weight:600}.emotion-choice.active{background:#fff2e5;border-color:#d49a70;color:#8f5128}.selection .btn.danger{margin-left:auto}
+dialog{border:0;border-radius:7px;width:min(490px,calc(100% - 32px));padding:0;box-shadow:0 16px 48px #15241d40}dialog::backdrop{background:#172a2370}.dialog-inner{padding:23px}.dialog-inner h2{font-size:18px;margin:0 0 8px}.dialog-inner p{color:#69756f;font-size:13px;margin:0 0 15px}.form-field{display:grid;gap:5px;margin-top:13px;font-size:12px;color:#506159;font-weight:600}.form-field input{width:100%;height:36px;border:1px solid #ccd9d3;border-radius:5px;padding:0 9px;font-size:14px;font-weight:400}.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}.dialog-error{color:#ad4b35;min-height:20px;font-size:12px;margin-top:8px}.help-list{padding-left:18px;font-size:13px;color:#52615a;line-height:1.7}
+@media(max-width:1050px){.workspace{grid-template-columns:180px minmax(0,1fr);gap:18px}.app-header{padding:0 16px}}
+@media(max-width:680px){.app-header{height:auto;min-height:56px;flex-wrap:wrap;padding:12px 16px}.workspace{display:block;padding:16px}.side{display:grid;grid-template-columns:1fr 1fr;gap:14px}.side-section{padding:0 0 12px;margin-bottom:12px}.sidebar-buttons{grid-template-columns:1fr 1fr}.side-section.actions{grid-column:1 / -1}.center{margin-top:4px}.editor{padding:16px}.transcript{font-size:15px}.legend{gap:6px}.mode-status{display:none}.header-actions .btn{padding:0 8px}.selection .btn.danger{margin-left:0}}
+</style>
+</head>
+<body>
+<header class="app-header"><div class="brand"><span class="brand-mark">S</span><span>语音标注审核</span></div><div class="header-actions"><span class="mode-status" id="identity">本机试用 · 不共享</span><button class="btn" id="githubButton" type="button">GitHub 协作</button><button class="icon-btn" id="helpButton" type="button" title="使用说明" aria-label="使用说明"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path></svg></button></div></header>
+<div class="workspace">
+  <aside class="side" aria-label="任务概览">
+    <div class="side-section"><p class="eyebrow">数据集</p><div class="segment" role="group" aria-label="选择数据集"><button id="demoSet" class="seg-btn active" type="button">体验 3 条</button><button id="fullSet" class="seg-btn" type="button">完整 5062 条</button></div><div class="meta-row"><span>已完成</span><strong id="completed">0 / 3</strong></div><div class="progress"><span id="progressBar"></span></div><div class="meta-row"><span>已领取</span><strong id="claimed">0</strong></div></div>
+    <div class="side-section actions"><p class="eyebrow">操作</p><div class="sidebar-buttons"><label class="btn file-label" title="选择包含音频的文件夹"><svg viewBox="0 0 24 24"><path d="M20 20H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4l2 2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2Z"></path></svg>绑定音频文件夹<input id="audioFolder" type="file" webkitdirectory multiple></label><button class="btn" id="exportButton" type="button"><svg viewBox="0 0 24 24"><path d="M12 15V3"></path><path d="m7 10 5 5 5-5"></path><path d="M5 17v3h14v-3"></path></svg>导出已完成</button></div><div class="subtle" id="audioCount" style="margin-top:8px">体验样例已内置音频</div></div>
+  </aside>
+  <main class="center">
+    <div class="task-head"><div><h1 id="taskTitle">正在准备任务</h1><div class="subtle" id="taskMeta">—</div></div><span class="state-pill" id="taskStatus">待审核</span></div>
+    <section class="surface audio-bar" aria-label="音频"><div class="audio-icon"><svg viewBox="0 0 24 24"><path d="M2 10v4"></path><path d="M6 6v12"></path><path d="M10 3v18"></path><path d="M14 8v8"></path><path d="M18 5v14"></path><path d="M22 10v4"></path></svg></div><div class="audio-content"><div class="audio-meta"><span>原始语音</span><span id="audioStatus">—</span></div><audio id="audio" controls preload="metadata"></audio></div></section>
+    <section class="surface editor" aria-label="标注内容"><div class="editor-top"><h2>标注文本 <span class="subtle" id="tagCount"></span></h2><div class="legend"><span><i class="dot emotion"></i>情感</span><span><i class="dot span"></i>范围</span><span><i class="dot event"></i>事件</span></div></div><div id="transcript" class="transcript"></div><div id="selection" class="selection" hidden></div></section>
+    <div class="draft-footer"><label><input type="checkbox" id="textMismatch">文本与音频不一致，需另行处理</label><div class="button-row"><button class="icon-btn" id="undoButton" type="button" title="撤销上一步" aria-label="撤销上一步"><svg viewBox="0 0 24 24"><path d="M3 7v6h6"></path><path d="M3 13a9 9 0 1 1 2.7 6.4"></path></svg></button><button class="btn primary" id="submitButton" type="button">提交审核</button><button class="btn primary" id="nextButton" type="button" hidden>随机领取</button></div></div><div class="notice" id="notice" role="status"></div>
+  </main>
+</div>
+<dialog id="githubDialog"><div class="dialog-inner"><h2>连接 GitHub 私有仓库</h2><p>每位审核员使用自己的 GitHub 账号令牌。音频、标注和审核结果保存在私有仓库。</p><label class="form-field">仓库 <input id="repoInput" type="text" placeholder="owner/repository" autocomplete="off" spellcheck="false"></label><label class="form-field">个人访问令牌 <input id="tokenInput" type="password" autocomplete="new-password" spellcheck="false"></label><p style="margin-top:12px">需对该私有仓库授予 Contents 读写权限。令牌仅保存在当前页面内存中。</p><div id="githubError" class="dialog-error" role="alert"></div><div class="dialog-actions"><button class="btn" id="cancelGithub" type="button">取消</button><button class="btn primary" id="connectGithub" type="button">连接</button></div></div></dialog>
+<dialog id="helpDialog"><div class="dialog-inner"><h2>审核与协作</h2><ul class="help-list"><li>点击文字的左侧或右侧，在出现的位置输入漏字并按回车；可使用撤销恢复。</li><li>直接拖动文字中的标签块；点击标签可切换情感或删除已有标签。句首情感固定，只能切换。</li><li>连接私有仓库后，页面会读取分配任务的 MP3 音频。</li><li>多人共用同一私有仓库、同一数据集；每人使用自己的令牌。提交结果保存在仓库。</li><li>已领取但未完成的任务保留给领取人，重新连接可继续；不自动过期。</li><li>GitHub 仅适合小规模试用，使用者有仓库写权限，不提供强制的细粒度权限隔离。</li></ul><div class="dialog-actions"><button class="btn primary" id="closeHelp" type="button">知道了</button></div></div></dialog>
+<script id="payload" type="application/json">{"online":true,"repo":"zirrtu/syki-annotation-review-data","demo":[],"full":[],"audio":{}}</script>
+<script>
+'use strict';
+const payload = JSON.parse(document.getElementById('payload').textContent);
+const $ = id => document.getElementById(id);
+const EMOTIONS = ['喜', '怒', '哀', '惊', '惧', '厌', '中'];
+const SPAN_NAMES = {stress:'重音', fast:'快速', slow:'慢速', laugh:'伴随笑声', cry:'伴随哭声'};
+const EVENT_NAMES = {laugh:'笑声', cry:'哭声', clucking:'啧声', sigh:'叹气', cough:'咳嗽', breath:'呼吸', sneezing:'喷嚏', pause:'停顿', hold:'拖音'};
+const TOKEN_RE = /\{([^{}\n]{1,40})\}|\[([^\[\]\n]{1,40})\]|<(\/?)([a-z]+)>/g;
+const ICONS = {
+  trash:'<svg viewBox="0 0 24 24"><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>',
+  check:'<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"></path></svg>',
+  close:'<svg viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>'
+};
+const S = {
+  dataset:'demo', tasks:payload.demo, taskMap:new Map(), fingerprint:'', mode:'local', client:null,
+  user:'local', task:null, parsed:null, chars:[], labels:[], selected:null, history:[], insertion:null,
+  claim:null, pending:null, busy:false, audioMap:new Map(), audioUrl:null, audioAbort:null,
+  summary:{done:0,claimed:0}, drag:null
+};
+
+function clone(value){ return JSON.parse(JSON.stringify(value)); }
+function textNode(tag, value, cls){ const e=document.createElement(tag); if(cls)e.className=cls; e.textContent=value; return e; }
+function notice(message){ $('notice').textContent=message || ''; }
+function enc64(text){ const b=new TextEncoder().encode(text); let s=''; for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode(...b.subarray(i,i+8192)); return btoa(s); }
+function dec64(text){ const s=atob(text.replace(/\s/g,'')); const a=Uint8Array.from(s,c=>c.charCodeAt(0)); return new TextDecoder().decode(a); }
+async function hashText(text){ const data=new TextEncoder().encode(text); const h=await crypto.subtle.digest('SHA-256',data); return [...new Uint8Array(h)].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+function randomId(){ return crypto.randomUUID ? crypto.randomUUID() : [...crypto.getRandomValues(new Uint8Array(16))].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+function randomIndex(length){ const values=new Uint32Array(1); const limit=Math.floor(4294967296/length)*length; do{crypto.getRandomValues(values)}while(values[0]>=limit); return values[0]%length; }
+
+function parseAnnotated(source){
+  let chars=[], labels=[], stack=[], offset=0, order=0, match;
+  const re=new RegExp(TOKEN_RE.source,'g');
+  while((match=re.exec(source))!==null){
+    chars.push(...Array.from(source.slice(offset,match.index)));
+    const at=chars.length, token=match[0], tokenOrder=order++;
+    if(match[1]!==undefined){
+      if(!EMOTIONS.includes(match[1]))throw new Error('未知情感标签：'+token);
+      labels.push({id:'l'+labels.length,kind:'emotion',type:match[1],pos:at,order:tokenOrder,deleted:false});
+    } else if(match[2]!==undefined){
+      if(!Object.prototype.hasOwnProperty.call(EVENT_NAMES,match[2]))throw new Error('未知事件标签：'+token);
+      labels.push({id:'l'+labels.length,kind:'event',type:match[2],pos:at,order:tokenOrder,deleted:false});
+    } else {
+      const closing=match[3]==='/', name=match[4];
+      if(!Object.prototype.hasOwnProperty.call(SPAN_NAMES,name))throw new Error('未知范围标签：'+token);
+      if(!closing){
+        const label={id:'l'+labels.length,kind:'span',type:name,start:at,end:null,order:tokenOrder,closeOrder:null,deleted:false};
+        labels.push(label); stack.push(label);
+      } else {
+        const label=stack.pop();
+        if(!label||label.type!==name)throw new Error('标签嵌套或闭合不正确：'+token);
+        label.end=at; label.closeOrder=tokenOrder;
+      }
+    }
+    offset=re.lastIndex;
+  }
+  chars.push(...Array.from(source.slice(offset)));
+  if(stack.length)throw new Error('存在未闭合范围标签');
+  return {source,chars,labels};
+}
+
+function isUnchanged(original,current){ return JSON.stringify(original)===JSON.stringify(current); }
+function serialize(parsed, labels, chars=parsed.chars){
+  if(!Array.isArray(chars)||chars.some(c=>typeof c!=='string'||Array.from(c).length!==1))throw new Error('正文格式不正确');
+  let sourceIndex=0;
+  for(const c of chars)if(sourceIndex<parsed.chars.length&&c===parsed.chars[sourceIndex])sourceIndex++;
+  if(sourceIndex!==parsed.chars.length)throw new Error('只能补充文字，不能删除原文');
+  if(labels.length!==parsed.labels.length)throw new Error('不能创建新标签');
+  const parts=[];
+  for(let i=0;i<labels.length;i++){
+    const l=labels[i], origin=parsed.labels[i];
+    if(!origin||l.id!==origin.id||l.kind!==origin.kind||l.order!==origin.order||l.closeOrder!==origin.closeOrder)throw new Error('标签身份不匹配');
+    if(typeof l.deleted!=='boolean')throw new Error('标签状态不正确');
+    if(l.kind==='emotion'){
+      if(!EMOTIONS.includes(l.type))throw new Error('情感类型不合法');
+      if(origin.pos===0&&(l.pos!==0||l.deleted))throw new Error('句首情感只能切换，不能移动或删除');
+    }else if(l.type!==origin.type)throw new Error('只能更改已有情感标签的类型');
+    if(l.deleted)continue;
+    if(l.kind==='span'){
+      if(!Number.isInteger(l.start)||!Number.isInteger(l.end)||l.start<0||l.end>chars.length||l.start>l.end)throw new Error('范围边界不合法');
+      if(l.start===l.end && origin.start!==origin.end)throw new Error('范围不能为空，请删除标签或扩大范围');
+      parts.push({pos:l.start,order:l.order,text:'<'+l.type+'>'});
+      parts.push({pos:l.end,order:l.closeOrder,text:'</'+l.type+'>'});
+    }else{
+      if(!Number.isInteger(l.pos)||l.pos<0||l.pos>chars.length)throw new Error('标签位置不合法');
+      if(l.kind==='event'&&l.type==='hold'&&l.pos<1)throw new Error('拖音标记需放在文字之后');
+      parts.push({pos:l.pos,order:l.order,text:l.kind==='emotion'?'{'+l.type+'}':'['+l.type+']'});
+    }
+  }
+  if(isUnchanged(parsed.labels,labels)&&chars.join('')===parsed.chars.join(''))return parsed.source;
+  parts.sort((a,b)=>a.pos-b.pos||a.order-b.order);
+  let out='', p=0;
+  for(let i=0;i<=chars.length;i++){
+    while(p<parts.length&&parts[p].pos===i)out+=parts[p++].text;
+    if(i<chars.length)out+=chars[i];
+  }
+  const round=parseAnnotated(out);
+  if(round.chars.join('')!==chars.join(''))throw new Error('补充文字不能包含标签');
+  if(round.labels.length!==labels.filter(x=>!x.deleted).length)throw new Error('标签数量异常');
+  return out;
+}
+
+function pushHistory(){S.history.push({labels:clone(S.labels),chars:[...S.chars]});if(S.history.length>40)S.history.shift()}
+function commitEdit(next){
+  try{
+    serialize(S.parsed,next,S.chars);
+    pushHistory();
+    S.labels=next; saveDraft(); notice(''); renderEditor();
+  }catch(err){notice(err.message);renderEditor()}
+}
+function moveLabel(id,part,value){
+  if(!S.task||S.pending||S.busy)return;
+  const next=clone(S.labels), label=next.find(x=>x.id===id);
+  if(!label||label.deleted)return;
+  if(isInitialEmotion(label)){notice('句首情感只能切换，不能移动或删除');return}
+  label[part]=Number(value);
+  if(JSON.stringify(next)===JSON.stringify(S.labels))return;
+  commitEdit(next);
+}
+function updateEmotion(id,value){
+  if(!S.task||S.pending||S.busy)return;
+  const next=clone(S.labels), label=next.find(x=>x.id===id);
+  if(!label||label.kind!=='emotion'||label.deleted)return;
+  label.type=value; commitEdit(next);
+}
+function toggleDelete(id){
+  if(!S.task||S.pending||S.busy)return;
+  const next=clone(S.labels), label=next.find(x=>x.id===id);
+  if(!label)return;
+  if(isInitialEmotion(label)){notice('句首情感只能切换，不能移动或删除');return}
+  label.deleted=!label.deleted; S.selected=id; commitEdit(next);
+}
+function draftKey(){ return 'syki-draft-v1:'+S.fingerprint+':'+S.mode+':'+S.user+':'+(S.task?.id||''); }
+function saveDraft(){
+  if(!S.task)return;
+  try{
+    const insertion=S.insertion?{...S.insertion,value:$('insertInput')?.value??S.insertion.value??''}:null;
+    sessionStorage.setItem(draftKey(),JSON.stringify({labels:S.labels,chars:S.chars,history:S.history,insertion,mismatch:$('textMismatch').checked,pending:S.pending}));
+  }
+  catch(err){notice('浏览器未保存临时草稿，请不要关闭页面。')}
+}
+function loadDraft(){
+  try{
+    const raw=sessionStorage.getItem(draftKey()); if(!raw)return;
+    const draft=JSON.parse(raw), restored=clone(draft.labels);let corrected=false;
+    for(let i=0;i<S.parsed.labels.length;i++){
+      const original=S.parsed.labels[i],label=restored[i];
+      if(original.kind==='emotion'&&original.pos===0&&label&&label.id===original.id&&(label.pos!==0||label.deleted)){
+        label.pos=0;label.deleted=false;corrected=true;
+      }
+    }
+    const chars=Array.isArray(draft.chars)?draft.chars:[...S.parsed.chars];
+    serialize(S.parsed,restored,chars);
+    S.labels=restored;S.chars=chars;$('textMismatch').checked=Boolean(draft.mismatch); S.pending=corrected?null:(draft.pending||null);
+    if(Array.isArray(draft.history)&&draft.history.length<=40){
+      const validHistory=[];
+      for(const snapshot of draft.history){try{serialize(S.parsed,snapshot.labels,snapshot.chars);validHistory.push(snapshot)}catch(err){}}
+      S.history=validHistory;
+    }
+    if(draft.insertion&&!S.pending&&Number.isInteger(draft.insertion.pos)&&draft.insertion.pos>=0&&draft.insertion.pos<=chars.length&&['before','after'].includes(draft.insertion.affinity))S.insertion=draft.insertion;
+    if(corrected){saveDraft();notice('已将旧草稿中的句首情感恢复至句首，请确认后提交。')}
+  }catch(err){notice('已有草稿不能安全恢复，已保留原始标注。')}
+}
+function deleteDraft(){ try{sessionStorage.removeItem(draftKey())}catch(err){} }
+
+function beginInsertion(pos,affinity){
+  if(!S.task||S.pending||S.busy)return;
+  if(S.insertion){finishInsertion();return}
+  S.insertion={pos,affinity,value:''};S.selected=null;notice('');renderEditor();
+  requestAnimationFrame(()=>$('insertInput')?.focus());
+}
+function cancelInsertion(){S.insertion=null;saveDraft();notice('');renderEditor()}
+function finishInsertion(){
+  if(!S.insertion)return true;
+  const value=$('insertInput')?.value??S.insertion.value??'';
+  if(!value){cancelInsertion();return true}
+  try{
+    if(new RegExp(TOKEN_RE.source).test(value))throw new Error('不能通过补字新增标注标签');
+    const {pos,affinity}=S.insertion, added=Array.from(value), nextChars=[...S.chars];
+    if(!Number.isInteger(pos)||pos<0||pos>nextChars.length)throw new Error('补字位置无效');
+    nextChars.splice(pos,0,...added);
+    const next=clone(S.labels),delta=added.length;
+    const shift=value=>value>pos||value===pos&&affinity==='before'?value+delta:value;
+    for(const label of next){
+      if(label.kind==='span'){label.start=shift(label.start);label.end=shift(label.end)}
+      else if(!isInitialEmotion(label))label.pos=shift(label.pos);
+    }
+    serialize(S.parsed,next,nextChars);
+    pushHistory();S.chars=nextChars;S.labels=next;S.insertion=null;saveDraft();notice('');renderEditor();return true;
+  }catch(err){notice(err.message);$('insertInput')?.focus();return false}
+}
+function makeInsertionInput(){
+  const slot=document.createElement('span');slot.className='insert-slot';
+  const input=document.createElement('input');input.id='insertInput';input.type='text';input.placeholder='输入漏字';input.setAttribute('aria-label','输入漏字');input.autocomplete='off';input.value=S.insertion.value||'';
+  input.addEventListener('input',()=>{S.insertion.value=input.value;saveDraft()});
+  input.addEventListener('keydown',event=>{
+    if(event.key==='Enter'&&!event.isComposing){event.preventDefault();finishInsertion()}
+    else if(event.key==='Escape'){event.preventDefault();cancelInsertion()}
+  });
+  const confirm=document.createElement('button');confirm.type='button';confirm.title='确认补字';confirm.setAttribute('aria-label','确认补字');confirm.innerHTML=ICONS.check;confirm.addEventListener('click',finishInsertion);
+  const cancel=document.createElement('button');cancel.type='button';cancel.title='取消补字';cancel.setAttribute('aria-label','取消补字');cancel.innerHTML=ICONS.close;cancel.addEventListener('click',cancelInsertion);
+  slot.append(input,confirm,cancel);return slot;
+}
+
+function labelTitle(l){ return l.kind==='emotion'?'情感 · '+l.type:l.kind==='event'?'事件 · '+EVENT_NAMES[l.type]:'范围 · '+SPAN_NAMES[l.type]; }
+function isInitialEmotion(l){const original=S.parsed?.labels.find(x=>x.id===l.id);return Boolean(original&&original.kind==='emotion'&&original.pos===0)}
+function selectLabel(id){if(S.insertion&&!finishInsertion())return;S.selected=id;notice('');renderEditor()}
+function makeMarker(label,part,pos){
+  const pinned=isInitialEmotion(label),b=document.createElement('button');
+  b.type='button';b.className='marker '+label.kind+(label.kind==='span'?' boundary':'')+(label.id===S.selected?' selected':'')+(pinned?' pinned':'');
+  b.textContent=label.kind==='span'?'<'+(part==='end'?'/':'')+label.type+'>':label.kind==='emotion'?'{'+label.type+'}':'['+label.type+']';
+  b.dataset.index=String(pos);b.dataset.id=label.id;b.dataset.part=part;
+  b.title=pinned?'句首情感只能切换':label.kind==='span'?(part==='start'?'拖动起始标签':'拖动结束标签'):'拖动标签位置';
+  b.setAttribute('aria-label',pinned?'句首情感 '+label.type+'，只能切换':labelTitle(label)+(part==='start'?' 起点':part==='end'?' 终点':''));
+  b.disabled=Boolean(S.pending||S.busy);
+  b.addEventListener('pointerdown',event=>{
+    if(S.pending||S.busy||(event.pointerType==='mouse'&&event.button!==0))return;
+    if(S.insertion){event.preventDefault();if(finishInsertion())selectLabel(label.id);return}
+    event.preventDefault();S.drag={id:label.id,part,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,moved:false,pinned,target:null,indicator:null};document.body.style.userSelect='none';
+  });
+  b.addEventListener('click',event=>{if(event.detail===0)selectLabel(label.id)});
+  return b;
+}
+function renderTranscript(){
+  const root=$('transcript');root.replaceChildren();
+  if(!S.task){root.append(textNode('div','暂无可审核任务','empty'));return}
+  const visible=S.labels.filter(l=>!l.deleted), selected=visible.find(l=>l.id===S.selected);
+  const byPos=new Map();
+  function add(pos,label,part,order){if(!byPos.has(pos))byPos.set(pos,[]);byPos.get(pos).push({label,part,order})}
+  for(const l of visible){
+    if(l.kind==='span'){add(l.start,l,'start',l.order);add(l.end,l,'end',l.closeOrder)}
+    else add(l.pos,l,'pos',l.order);
+  }
+  for(let i=0;i<=S.chars.length;i++){
+    const here=byPos.get(i)||[];here.sort((a,b)=>a.order-b.order);
+    if(S.insertion&&S.insertion.pos===i&&S.insertion.affinity==='before')root.append(makeInsertionInput());
+    for(const item of here)root.append(makeMarker(item.label,item.part,i));
+    if(S.insertion&&S.insertion.pos===i&&S.insertion.affinity==='after')root.append(makeInsertionInput());
+    if(i<S.chars.length){
+      const c=textNode('span',S.chars[i],'glyph');c.dataset.index=String(i);if(selected&&selected.kind==='span'&&selected.start<=i&&i<selected.end)c.classList.add('active');
+      c.addEventListener('click',event=>{const r=c.getBoundingClientRect(),after=event.clientX>r.left+r.width/2;beginInsertion(i+(after?1:0),after?'before':'after')});root.append(c)
+    }
+  }
+}
+function renderSelection(){
+  const root=$('selection');root.replaceChildren();
+  const label=S.labels.find(l=>l.id===S.selected);
+  if(!S.task||!label||label.deleted){root.hidden=true;return}
+  root.hidden=false;
+  root.append(textNode('span',isInitialEmotion(label)?'句首情感':labelTitle(label),'selection-title'));
+  if(label.kind==='emotion'){
+    const choices=document.createElement('div');choices.className='emotion-choices';choices.setAttribute('role','group');choices.setAttribute('aria-label','切换情感');
+    for(const emotion of EMOTIONS){const b=textNode('button',emotion,'emotion-choice'+(emotion===label.type?' active':''));b.type='button';b.disabled=Boolean(S.pending||S.busy);b.setAttribute('aria-pressed',String(emotion===label.type));b.addEventListener('click',()=>updateEmotion(label.id,emotion));choices.append(b)}
+    root.append(choices);
+  }
+  if(!isInitialEmotion(label)){
+    const remove=document.createElement('button');remove.type='button';remove.className='btn danger';remove.id='deleteLabel';remove.title='删除该标签';remove.setAttribute('aria-label','删除标签');remove.innerHTML=ICONS.trash;remove.append(document.createTextNode('删除'));remove.disabled=Boolean(S.pending||S.busy);remove.addEventListener('click',()=>toggleDelete(label.id));root.append(remove);
+  }
+}
+function renderEditor(){renderTranscript();renderSelection();$('tagCount').textContent=S.task?`· ${S.labels.filter(x=>!x.deleted).length} 个标签`:'';$('undoButton').disabled=!S.task||!S.history.length||Boolean(S.pending||S.busy)}
+
+window.addEventListener('pointermove',event=>{
+  if(!S.drag||!S.task||event.pointerId!==S.drag.pointerId)return;
+  if(!S.drag.moved&&Math.hypot(event.clientX-S.drag.startX,event.clientY-S.drag.startY)<4)return;
+  S.drag.moved=true;
+  if(S.drag.pinned){notice('句首情感只能切换，不能移动或删除');return}
+  if(S.drag.indicator){S.drag.indicator.classList.remove('drop-before','drop-after','drop-at');S.drag.indicator=null}
+  let el=document.elementFromPoint(event.clientX,event.clientY);el=el&&el.closest('[data-index]');
+  if(!el||!$('transcript').contains(el)){S.drag.target=null;return}
+  let idx=Number(el.dataset.index);
+  if(el.classList.contains('glyph')){const r=el.getBoundingClientRect(),after=event.clientX>r.left+r.width/2;if(after)idx++;el.classList.add(after?'drop-after':'drop-before')}
+  else el.classList.add('drop-at');
+  S.drag.target=idx;S.drag.indicator=el;
+});
+function finishDrag(event,cancelled=false){
+  if(!S.drag||event.pointerId!==S.drag.pointerId)return;
+  const d=S.drag;S.drag=null;document.body.style.userSelect='';S.selected=d.id;
+  if(d.indicator)d.indicator.classList.remove('drop-before','drop-after','drop-at');
+  if(d.pinned&&d.moved)notice('句首情感只能切换，不能移动或删除');
+  else if(!cancelled&&d.moved&&d.target!==null)moveLabel(d.id,d.part,d.target);
+  else if(!d.moved)notice('');
+  renderEditor();
+}
+window.addEventListener('pointerup',event=>finishDrag(event));
+window.addEventListener('pointercancel',event=>finishDrag(event,true));
+
+class ApiError extends Error{
+  constructor(message,status){super(message);this.status=status}
+}
+class GitHubClient{
+  constructor(repo,token){this.repo=repo;this.token=token;this.user='';this.branch=''}
+  async request(method,path,body){
+    const controller=new AbortController(), timeout=setTimeout(()=>controller.abort(),30000);
+    try{
+      const options={method,headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+this.token,'X-GitHub-Api-Version':'2022-11-28'},signal:controller.signal};
+      if(body!==undefined){options.headers['Content-Type']='application/json';options.body=JSON.stringify(body)}
+      let response;
+      try{response=await fetch('https://api.github.com'+path,options)}catch(err){throw new ApiError('无法连接 GitHub，请检查网络或稍后重试。',0)}
+      if(response.status===404)return null;
+      if(!response.ok){
+        if(response.status===403||response.status===429)throw new ApiError('GitHub 权限不足或请求受限，请检查令牌权限或稍后重试。',response.status);
+        throw new ApiError('GitHub 请求失败（HTTP '+response.status+'）。',response.status);
+      }
+      return await response.json();
+    }finally{clearTimeout(timeout)}
+  }
+  async connect(){
+    const me=await this.request('GET','/user');
+    if(!me||!me.login)throw new Error('登录失败，请检查 GitHub 令牌。');
+    const repo=await this.request('GET','/repos/'+this.repo);
+    if(!repo)throw new Error('仓库不存在或当前令牌无权访问。');
+    if(repo.private!==true)throw new Error('为保护数据，请使用私有仓库。');
+    if(!repo.default_branch)throw new Error('仓库没有默认分支，请先初始化仓库。');
+    this.user=me.login; this.branch=repo.default_branch;
+  }
+  base(){return '/repos/'+this.repo}
+  encodedPath(path){return path.split('/').map(encodeURIComponent).join('/')}
+  async read(path){
+    const meta=await this.request('GET',this.base()+'/contents/'+this.encodedPath(path)+'?ref='+encodeURIComponent(this.branch));
+    if(!meta)return null;
+    if(meta.type!=='file'||!meta.sha)throw new Error('仓库中存在不兼容的同名文件。');
+    let raw=meta.content;
+    if(!raw){const blob=await this.request('GET',this.base()+'/git/blobs/'+meta.sha);if(!blob||!blob.content)throw new Error('无法读取仓库文件。');raw=blob.content}
+    try{return {sha:meta.sha,data:JSON.parse(dec64(raw))}}catch(err){throw new Error('仓库中的审核数据格式不正确。')}
+  }
+  async write(path,data,sha,message){
+    const body={message,content:enc64(JSON.stringify(data)),branch:this.branch};if(sha)body.sha=sha;
+    const response=await this.request('PUT',this.base()+'/contents/'+this.encodedPath(path),body);
+    if(!response||!response.content||!response.content.sha)throw new Error('GitHub 未确认写入，请重试。');
+    return response.content.sha;
+  }
+  async readAudio(wavPath,signal){
+    if(!/^wav\/speaker_[^/]+\/[^/]+\.wav$/i.test(wavPath)||wavPath.split('/').includes('..'))throw new Error('音频路径不合法。');
+    const path='audio/'+wavPath.slice(4).replace(/\.wav$/i,'.mp3');
+    const url='https://api.github.com'+this.base()+'/contents/'+this.encodedPath(path)+'?ref='+encodeURIComponent(this.branch);
+    let response;
+    try{response=await fetch(url,{headers:{'Accept':'application/vnd.github.raw+json','Authorization':'Bearer '+this.token,'X-GitHub-Api-Version':'2022-11-28'},signal})}
+    catch(err){if(err.name==='AbortError')throw err;throw new Error('音频连接失败，请重试。')}
+    if(!response.ok)throw new Error('音频读取失败（HTTP '+response.status+'）。');
+    const blob=await response.blob();
+    if(!blob.size||/json/i.test(blob.type))throw new Error('音频内容无效。');
+    return new Blob([blob],{type:'audio/mpeg'});
+  }
+}
+async function loadOnlineManifest(client){
+  const file=await client.read('dataset/manifest.json'),data=file?.data;
+  if(!data||data.format!=='syki-review-dataset'||data.version!==1||!Array.isArray(data.tasks)||data.tasks.length!==5062)throw new Error('私有数据集不完整或格式不正确。');
+  const ids=new Set(),paths=new Set();
+  for(const task of data.tasks){
+    if(!task||!/^[-\p{L}\p{N}_]+$/u.test(task.id)||ids.has(task.id)||typeof task.annotated!=='string'||!/^wav\/speaker_[^/]+\/[^/]+\.wav$/i.test(task.wav)||task.wav.split('/').includes('..')||paths.has(task.wav)||!Number.isFinite(task.duration_sec)||task.duration_sec<=0)throw new Error('私有数据集中存在不合法的任务。');
+    parseAnnotated(task.annotated);ids.add(task.id);paths.add(task.wav);
+  }
+  return data.tasks;
+}
+function remoteBase(){return 'syki-review/v1/'+S.fingerprint}
+function emptyState(){return {format:'syki-review-state',version:1,dataset:S.fingerprint,total:S.tasks.length,items:{}}}
+function validateState(data){
+  if(!data||data.format!=='syki-review-state'||data.version!==1||data.dataset!==S.fingerprint||data.total!==S.tasks.length||!data.items||typeof data.items!=='object'||Array.isArray(data.items))throw new Error('共享进度与当前数据集不匹配，已停止操作。');
+  return data;
+}
+function localKey(){return 'syki-review-local-v1:'+S.fingerprint}
+function localState(){
+  const raw=localStorage.getItem(localKey());if(!raw)return emptyState();
+  return validateState(JSON.parse(raw));
+}
+function saveLocalState(state){localStorage.setItem(localKey(),JSON.stringify(state))}
+async function readState(){
+  if(S.mode==='local')return {sha:null,data:localState()};
+  const file=await S.client.read(remoteBase()+'/state.json');
+  return file?{sha:file.sha,data:validateState(file.data)}:{sha:null,data:emptyState()};
+}
+const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function mutateState(mutator){
+  if(S.mode==='local'){
+    const state=localState(),result=mutator(state);
+    if(result.changed)saveLocalState(state);
+    return {data:state,value:result.value};
+  }
+  for(let attempt=0;attempt<8;attempt++){
+    const before=await readState(), next=clone(before.data), result=mutator(next);
+    if(!result.changed)return {data:next,value:result.value};
+    try{
+      await S.client.write(remoteBase()+'/state.json',next,before.sha,'Update SYKI annotation review state');
+      return {data:next,value:result.value};
+    }catch(err){
+      if(err.status!==409&&err.status!==422)throw err;
+      const after=await readState();
+      if(err.status===422&&after.sha===before.sha)throw err;
+      await delay(150+Math.floor(Math.random()*350));
+    }
+  }
+  throw new Error('同时领取的人较多，请稍后重试。');
+}
+function refreshCounts(state){
+  let done=0,claimed=0;
+  for(const v of Object.values(state.items)){if(v.status==='done')done++;else if(v.status==='claimed')claimed++}
+  S.summary={done,claimed};
+  $('completed').textContent=done+' / '+S.tasks.length;
+  $('claimed').textContent=String(claimed);
+  $('progressBar').style.width=(S.tasks.length?100*done/S.tasks.length:0)+'%';
+}
+async function acquireTask(){
+  const changed=await mutateState(state=>{
+    const owned=Object.entries(state.items).find(([id,v])=>v.status==='claimed'&&v.owner===S.user&&S.taskMap.has(id));
+    if(owned)return {changed:false,value:{id:owned[0],claim:owned[1].claim}};
+    const free=S.tasks.filter(t=>!state.items[t.id]);
+    if(!free.length)return {changed:false,value:null};
+    const task=free[randomIndex(free.length)],claim=randomId();
+    state.items[task.id]={status:'claimed',owner:S.user,claim,claimed_at:new Date().toISOString()};
+    return {changed:true,value:{id:task.id,claim}};
+  });
+  refreshCounts(changed.data);return changed.value;
+}
+async function readRemoteResult(id){
+  if(S.mode==='local')return null;
+  const f=await S.client.read(remoteBase()+'/results/'+id+'.json');return f&&f.data;
+}
+async function finalizeClaim(id,claim){
+  const changed=await mutateState(state=>{
+    const row=state.items[id];
+    if(row&&row.status==='done'&&row.owner===S.user&&row.claim===claim)return {changed:false,value:true};
+    if(!row||row.status!=='claimed'||row.owner!==S.user||row.claim!==claim)throw new Error('任务领取状态已改变，结果不会被覆盖。');
+    row.status='done';row.finished_at=new Date().toISOString();return {changed:true,value:true};
+  });
+  refreshCounts(changed.data);
+}
+function checkExistingResult(result,id,claim){
+  if(!result||result.format!=='syki-review-result'||result.dataset!==S.fingerprint||result.task_id!==id||result.claim!==claim||result.reviewer!==S.user)throw new Error('发现不属于当前领取记录的结果，已停止以免覆盖。');
+}
+async function claimAndLoad(){
+  if(S.busy)return;setBusy(true);notice('');
+  try{
+    for(let i=0;i<3;i++){
+      const next=await acquireTask();
+      if(!next){S.task=null;S.claim=null;S.chars=[];S.labels=[];S.selected=null;S.insertion=null;renderTask();notice('当前没有可领取的任务。');return}
+      if(S.mode==='github'){
+        const result=await readRemoteResult(next.id);
+        if(result){checkExistingResult(result,next.id,next.claim);await finalizeClaim(next.id,next.claim);continue}
+      }
+      const task=S.taskMap.get(next.id);
+      if(!task)throw new Error('领取的任务不在当前数据集中。');
+      S.task=task;S.claim=next.claim;S.parsed=parseAnnotated(task.annotated);S.chars=[...S.parsed.chars];S.labels=clone(S.parsed.labels);S.selected=null;S.history=[];S.pending=null;S.insertion=null;$('textMismatch').checked=false;
+      loadDraft();renderTask();return;
+    }
+    throw new Error('共享结果已同步，请再次领取。');
+  }catch(err){notice(err.message)}finally{setBusy(false)}
+}
+function makeResult(){
+  return {format:'syki-review-result',version:1,dataset:S.fingerprint,task_id:S.task.id,wav:S.task.wav,reviewer:S.user,claim:S.claim,submission_id:randomId(),submitted_at:new Date().toISOString(),needs_text_review:$('textMismatch').checked,source_annotated:S.task.annotated,source_text:S.parsed.chars.join(''),reviewed_text:S.chars.join(''),text_changed:S.chars.join('')!==S.parsed.chars.join(''),reviewed_annotated:serialize(S.parsed,S.labels,S.chars),labels:S.labels.map(l=>clone(l))};
+}
+async function saveResult(result){
+  if(S.mode==='local'){
+    const changed=await mutateState(state=>{
+      const row=state.items[result.task_id];
+      if(!row||row.status!=='claimed'||row.owner!==S.user||row.claim!==result.claim)throw new Error('任务状态已改变。');
+      row.status='done';row.finished_at=result.submitted_at;row.result=result;return {changed:true,value:true};
+    });refreshCounts(changed.data);return;
+  }
+  const state=await readState(),row=state.data.items[result.task_id];
+  if(!row||row.owner!==S.user||row.claim!==result.claim||!['claimed','done'].includes(row.status))throw new Error('任务领取状态已改变，结果不会被覆盖。');
+  const path=remoteBase()+'/results/'+result.task_id+'.json';
+  let existing=await S.client.read(path);
+  if(!existing){
+    try{await S.client.write(path,result,null,'Save SYKI annotation review '+result.task_id)}
+    catch(err){
+      if(err.status!==409&&err.status!==422&&err.status!==0)throw err;
+      existing=await S.client.read(path);
+      if(!existing)throw err;
+    }
+  }
+  if(existing){
+    checkExistingResult(existing.data,result.task_id,result.claim);
+    if(existing.data.submission_id!==result.submission_id)throw new Error('该任务已由同一账号的其他页面提交；未覆盖现有结果。');
+  }
+  await finalizeClaim(result.task_id,result.claim);
+}
+async function submitTask(){
+  if(!S.task||S.busy)return;
+  if(S.insertion&&!finishInsertion())return;
+  if(!S.pending&&!S.audioAvailable){notice('请先绑定包含此条音频的文件夹。');return}
+  setBusy(true);notice('');
+  try{
+    if(!S.pending){S.pending=makeResult();saveDraft()}
+    await saveResult(S.pending);
+    deleteDraft();S.task=null;S.claim=null;S.parsed=null;S.chars=[];S.labels=[];S.history=[];S.selected=null;S.pending=null;S.insertion=null;
+    renderTask();notice('审核结果已保存。');
+  }catch(err){notice(err.message+' 当前草稿已保留，可重试提交。')}finally{setBusy(false)}
+}
+
+function updateAudio(){
+  if(S.audioAbort){S.audioAbort.abort();S.audioAbort=null}
+  if(S.audioUrl){URL.revokeObjectURL(S.audioUrl);S.audioUrl=null}
+  const audio=$('audio');audio.onloadedmetadata=null;audio.onerror=null;audio.pause();audio.removeAttribute('src');S.audioAvailable=false;
+  if(!S.task){$('audioStatus').textContent='无任务';audio.load();return}
+  const taskId=S.task.id, expected=Number(S.task.duration_sec);
+  const embedded=payload.audio[S.task.id];
+  const key=S.task.wav.replace(/^wav\//,'');
+  const local=S.audioMap.get(key);
+  const online=Boolean(payload.online&&S.mode==='github'&&S.client);
+  if(local){S.audioUrl=URL.createObjectURL(local);audio.src=S.audioUrl;$('audioStatus').textContent='音频加载中'}
+  else if(S.dataset==='demo'&&embedded){audio.src='data:audio/wav;base64,'+embedded;$('audioStatus').textContent='音频加载中'}
+  else if(online){
+    const client=S.client,controller=new AbortController();S.audioAbort=controller;$('audioStatus').textContent='正在读取私有音频';
+    client.readAudio(S.task.wav,controller.signal).then(blob=>{
+      if(controller.signal.aborted||S.client!==client||!S.task||S.task.id!==taskId)return;
+      S.audioAbort=null;S.audioUrl=URL.createObjectURL(blob);audio.src=S.audioUrl;audio.load();
+    }).catch(err=>{if(err.name!=='AbortError'&&S.task&&S.task.id===taskId){S.audioAbort=null;S.audioAvailable=false;$('audioStatus').textContent=err.message+' 刷新页面可重试';syncDisabled()}});
+  }else $('audioStatus').textContent='请绑定音频文件夹';
+  audio.onloadedmetadata=()=>{
+    if(!S.task||S.task.id!==taskId)return;
+    if(!Number.isFinite(audio.duration)||Math.abs(audio.duration-expected)>.15){S.audioAvailable=false;$('audioStatus').textContent='音频时长不符，请检查文件'}
+    else{S.audioAvailable=true;$('audioStatus').textContent=local?'已绑定音频':online?'私有仓库音频':'内置体验音频'}
+    syncDisabled();
+  };
+  audio.onerror=()=>{if(S.task&&S.task.id===taskId){S.audioAvailable=false;$('audioStatus').textContent='音频加载失败';syncDisabled()}};
+  audio.load();
+}
+function renderTask(){
+  $('taskTitle').textContent=S.task?'审核 · '+S.task.id:'暂无当前任务';
+  $('taskMeta').textContent=S.task?`原音 ${Number(S.task.duration_sec).toFixed(1)} 秒 · ${S.task.wav}`:'点击“随机领取”继续';
+  $('taskStatus').textContent=S.pending?'待同步':S.task?'待审核':'空闲';
+  $('submitButton').hidden=!S.task;$('nextButton').hidden=!!S.task;
+  $('submitButton').textContent=S.pending?'重试提交':'提交审核';
+  updateAudio();renderEditor();syncDisabled();
+}
+function syncDisabled(){
+  $('githubButton').disabled=S.busy;$('demoSet').disabled=S.busy||Boolean(payload.online);$('fullSet').disabled=S.busy||Boolean(payload.online);
+  $('audioFolder').disabled=S.busy;$('exportButton').disabled=S.busy;$('nextButton').disabled=S.busy;
+  $('textMismatch').disabled=S.busy||!S.task||Boolean(S.pending);
+  $('submitButton').disabled=S.busy||!S.task||(!S.audioAvailable&&!S.pending);
+  $('undoButton').disabled=S.busy||!S.task||!S.history.length||Boolean(S.pending);
+}
+function setBusy(value){S.busy=value;syncDisabled();renderEditor()}
+async function switchDataset(name){
+  if(S.busy||name===S.dataset&&S.fingerprint)return;
+  if(S.insertion&&!finishInsertion())return;
+  if(S.task&&(S.pending||!isUnchanged(S.parsed.labels,S.labels)||S.chars.join('')!==S.parsed.chars.join('')||$('textMismatch').checked)){
+    if(!confirm('当前任务尚未提交，切换后将保留领取状态和本页草稿。继续切换吗？'))return;
+    saveDraft();
+  }
+  setBusy(true);
+  try{
+    S.dataset=name;S.tasks=payload[name];S.taskMap=new Map(S.tasks.map(task=>[task.id,task]));S.task=null;S.parsed=null;S.chars=[];S.labels=[];S.history=[];S.selected=null;S.pending=null;S.claim=null;S.insertion=null;
+    S.fingerprint=await hashText(JSON.stringify(S.tasks));
+  }finally{setBusy(false)}
+  $('demoSet').classList.toggle('active',name==='demo');$('fullSet').classList.toggle('active',name==='full');
+  $('audioCount').textContent=S.audioMap.size?`已绑定 ${S.audioMap.size} 条音频`:name==='demo'?'体验样例已内置音频':'未绑定音频文件夹';
+  S.summary={done:0,claimed:0};$('completed').textContent='0 / '+S.tasks.length;$('claimed').textContent='0';$('progressBar').style.width='0%';
+  renderTask();await claimAndLoad();
+}
+function bindAudio(files){
+  const map=new Map(),duplicate=new Set();
+  for(const f of files){
+    const p=(f.webkitRelativePath||f.name).replace(/\\/g,'/');
+    const match=p.match(/(?:^|\/)(speaker_[^/]+\/[^/]+\.wav)$/i);
+    if(!match)continue;
+    if(map.has(match[1]))duplicate.add(match[1]);else map.set(match[1],f);
+  }
+  for(const k of duplicate)map.delete(k);
+  S.audioMap=map;$('audioCount').textContent=`已绑定 ${map.size} 条音频`;
+  updateAudio();syncDisabled();
+  notice(duplicate.size?'存在 '+duplicate.size+' 个重名相对路径，已排除。':map.size?'音频文件夹已绑定。':'没有找到 speaker_*/ 目录中的 WAV。');
+}
+function download(name,text){
+  const url=URL.createObjectURL(new Blob([text],{type:'application/x-ndjson;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+async function exportResults(){
+  if(S.busy)return;setBusy(true);notice('');
+  let results=[];
+  try{
+    const state=(await readState()).data;refreshCounts(state);
+    const ids=Object.entries(state.items).filter(([,v])=>v.status==='done').map(([id])=>id);
+    if(!ids.length){notice('还没有已完成的结果。');return}
+    if(S.mode==='github'&&ids.length>100&&!confirm('将逐条读取 '+ids.length+' 个结果，可能触发 GitHub 频率限制。继续吗？'))return;
+    for(const id of ids){
+      const row=state.items[id];
+      const result=S.mode==='local'?row.result:await readRemoteResult(id);
+      if(!result||result.task_id!==id||result.dataset!==S.fingerprint)throw new Error('结果缺失或不匹配：'+id);
+      results.push(result);
+    }
+    download('syki_review_'+S.dataset+'.jsonl',results.map(x=>JSON.stringify(x)).join('\n')+'\n');
+    notice('已导出 '+results.length+' 条审核结果。');
+  }catch(err){
+    if(results.length)download('syki_review_partial_'+S.dataset+'.jsonl',results.map(x=>JSON.stringify(x)).join('\n')+'\n');
+    notice(err.message+(results.length?' 已下载已读取部分。':''));
+  }finally{setBusy(false)}
+}
+
+$('demoSet').addEventListener('click',()=>switchDataset('demo').catch(err=>notice(err.message)));
+$('fullSet').addEventListener('click',()=>switchDataset('full').catch(err=>notice(err.message)));
+$('audioFolder').addEventListener('change',event=>bindAudio(event.target.files));
+$('nextButton').addEventListener('click',claimAndLoad);
+$('submitButton').addEventListener('click',submitTask);
+$('textMismatch').addEventListener('change',saveDraft);
+$('exportButton').addEventListener('click',exportResults);
+$('undoButton').addEventListener('click',()=>{if(S.insertion){cancelInsertion();return}if(!S.history.length||S.pending||S.busy)return;const previous=S.history.pop();S.labels=previous.labels;S.chars=previous.chars;saveDraft();notice('');renderEditor()});
+$('githubButton').addEventListener('click',()=>{
+  if(S.insertion&&!finishInsertion())return;
+  if(S.mode==='github'){
+    if(S.task&&(S.pending||!isUnchanged(S.parsed.labels,S.labels)||S.chars.join('')!==S.parsed.chars.join('')||$('textMismatch').checked)&&!confirm('当前任务仍保留在 GitHub，你可以重新连接继续。断开吗？'))return;
+    saveDraft();S.client=null;S.mode='local';S.user='local';$('identity').textContent=payload.online?'请连接 GitHub':'本机试用 · 不共享';$('githubButton').textContent='GitHub 协作';S.task=null;S.parsed=null;S.chars=[];S.labels=[];S.history=[];S.claim=null;S.selected=null;S.pending=null;S.insertion=null;
+    if(payload.online){S.tasks=[];S.taskMap=new Map();S.fingerprint='';$('completed').textContent='0 / 5062';$('claimed').textContent='0';$('progressBar').style.width='0%';renderTask();notice('请连接 GitHub 私有仓库。')}
+    else{renderTask();claimAndLoad()}return;
+  }
+  $('githubError').textContent='';$('githubDialog').showModal();
+});
+$('cancelGithub').addEventListener('click',()=>{$('tokenInput').value='';$('githubDialog').close()});
+$('connectGithub').addEventListener('click',async()=>{
+  const repo=$('repoInput').value.trim(), token=$('tokenInput').value.trim();
+  if(!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)||!token){$('githubError').textContent='请填写 owner/repository 和访问令牌。';return}
+  $('connectGithub').disabled=true;$('githubError').textContent='正在连接…';
+  try{
+    const client=new GitHubClient(repo,token);await client.connect();
+    const tasks=payload.online?await loadOnlineManifest(client):null;
+    const fingerprint=tasks?await hashText(JSON.stringify(tasks)):null;
+    if(S.task)saveDraft();
+    S.client=client;S.mode='github';S.user=client.user;S.task=null;S.parsed=null;S.chars=[];S.labels=[];S.selected=null;S.pending=null;S.insertion=null;
+    if(tasks){S.dataset='full';S.tasks=tasks;S.taskMap=new Map(tasks.map(task=>[task.id,task]));S.fingerprint=fingerprint}
+    $('tokenInput').value='';$('githubDialog').close();$('identity').textContent='GitHub · '+S.user;$('githubButton').textContent='断开连接';
+    renderTask();await claimAndLoad();
+  }catch(err){$('githubError').textContent=err.message}finally{$('connectGithub').disabled=false}
+});
+$('helpButton').addEventListener('click',()=>$('helpDialog').showModal());
+$('closeHelp').addEventListener('click',()=>$('helpDialog').close());
+window.addEventListener('beforeunload',()=>{if(S.task)saveDraft()});
+
+window.__sykiReviewTest={parseAnnotated,serialize,getState:()=>S,switchDataset,claimAndLoad,submitTask,moveLabel,updateEmotion,toggleDelete};
+if(payload.online){
+  $('identity').textContent='请连接 GitHub';$('repoInput').value=payload.repo;$('repoInput').readOnly=true;
+  $('demoSet').hidden=true;$('fullSet').classList.add('active');$('fullSet').textContent='完整 5062 条';$('audioFolder').closest('label').hidden=true;
+  $('audioCount').textContent='连接后读取私有音频';$('completed').textContent='0 / 5062';$('nextButton').hidden=true;$('submitButton').hidden=true;
+  $('taskTitle').textContent='连接 GitHub 后开始';$('taskMeta').textContent='';$('taskStatus').textContent='未连接';$('transcript').textContent='';notice('请连接 GitHub 私有仓库。');
+  syncDisabled();
+  $('githubDialog').showModal();
+}else switchDataset('demo').catch(err=>{notice(err.message);$('taskTitle').textContent='初始化失败'});
+
+</script>
+</body></html>
