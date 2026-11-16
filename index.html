@@ -633,7 +633,7 @@ function renderTask(){
   const issues=S.task?.warnings||[];warnings.textContent=issues.join('；');
   $('reviewHintsSummary').textContent='原标注与 QwenASR 参考'+(issues.length?' · '+issues.length+' 项待核对':'');
   asr.textContent=S.task?.asr_text?'QwenASR：'+S.task.asr_text:'';
-  original.textContent=S.task?.source_annotated?'原始人工标注：'+S.task.source_annotated:'';
+  original.textContent=S.task?.source_annotated?'转换前标注：'+S.task.source_annotated:'';
   hints.hidden=!issues.length&&!S.task?.asr_text&&!S.task?.source_annotated;hints.open=false;
   updateAudio();renderEditor();syncDisabled();
 }
