@@ -19,7 +19,7 @@
 .meta-row{display:flex;justify-content:space-between;gap:8px;color:#64716b;margin:9px 0;font-size:13px}.meta-row strong{color:#2a3932;font-weight:650}.progress{height:6px;border-radius:3px;background:#dce7e2;margin:12px 0}.progress span{height:100%;display:block;background:#498b77;border-radius:3px;width:0}.sidebar-buttons{display:grid;gap:8px}.sidebar-buttons .btn{justify-content:flex-start;width:100%}.file-label{position:relative;overflow:hidden}.file-label input{position:absolute;width:1px;height:1px;opacity:0}
 .center{min-width:0}.task-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:15px}.task-head h1{font-size:20px;margin:0 0 4px;line-height:1.3}.subtle{color:#788580;font-size:12px}.state-pill{display:inline-flex;align-items:center;gap:6px;border-radius:4px;padding:4px 8px;color:#256753;background:#e2f0e8;font-size:12px;font-weight:600}.state-pill:before{content:"";width:6px;height:6px;background:currentColor;border-radius:50%}
 .surface{background:#fff;border:1px solid #dfe7e3;border-radius:7px}.audio-bar{padding:16px 18px;display:flex;gap:16px;align-items:center;margin-bottom:16px}.audio-icon{width:38px;height:38px;display:grid;place-items:center;background:#edf5f2;color:#287460;border-radius:5px}.audio-icon svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8}.audio-content{min-width:0;flex:1}.audio-meta{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#75847d;margin-bottom:3px}audio{display:block;width:100%;height:35px}
-.editor{padding:21px 22px;min-height:290px}.editor-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}.editor-top h2{margin:0;font-size:14px}.legend{display:flex;gap:12px;flex-wrap:wrap;color:#77837e;font-size:11px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:1px}.dot.emotion{background:#d48a50}.dot.span{background:#5e9f8b}.dot.event{background:#6b88b4}
+.editor{padding:21px 22px;min-height:290px}.editor-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:13px}.editor-top h2{margin:0;font-size:14px}.editor-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.legend{display:flex;gap:12px;flex-wrap:wrap;color:#77837e;font-size:11px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:1px}.dot.emotion{background:#d48a50}.dot.span{background:#5e9f8b}.dot.event{background:#6b88b4}
 .transcript{font-size:17px;line-height:2.7;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;min-height:150px;padding-bottom:6px;color:#273733}.glyph{white-space:pre-wrap;border-bottom:2px solid transparent;cursor:text}.glyph.active{background:#e2f3e9;border-bottom-color:#317c62}.glyph.editing{background:#fce8dc;border-bottom-color:#b44b35}.glyph:hover{background:#edf5ef}
 .marker{display:inline-flex;align-items:center;vertical-align:2px;min-height:26px;padding:2px 6px;margin:0 2px;border:1px solid #a8d4c3;border-radius:4px;background:#e6f4ed;color:#246a54;font:600 12px ui-monospace,Consolas,monospace;white-space:nowrap;user-select:none;touch-action:none;cursor:grab}.marker:active{cursor:grabbing}.marker.emotion{background:#fff2e5;border-color:#ebcfb4;color:#995a2c}.marker.event{background:#edf3fb;border-color:#d1dff2;color:#496c9a}.marker.selected{outline:2px solid #68a590;outline-offset:1px}.marker.pinned{cursor:pointer}.marker:focus-visible{outline:2px solid #205c4c;outline-offset:2px}
 .glyph.drop-before{box-shadow:inset 2px 0 #277b60}.glyph.drop-after{box-shadow:inset -2px 0 #277b60}.marker.drop-at{outline:2px solid #277b60;outline-offset:1px}
@@ -42,12 +42,12 @@ dialog{border:0;border-radius:7px;width:min(490px,calc(100% - 32px));padding:0;b
   <main class="center">
     <div class="task-head"><div><h1 id="taskTitle">正在准备任务</h1><div class="subtle" id="taskMeta">—</div></div><span class="state-pill" id="taskStatus">待审核</span></div>
     <section class="surface audio-bar" aria-label="音频"><div class="audio-icon"><svg viewBox="0 0 24 24"><path d="M2 10v4"></path><path d="M6 6v12"></path><path d="M10 3v18"></path><path d="M14 8v8"></path><path d="M18 5v14"></path><path d="M22 10v4"></path></svg></div><div class="audio-content"><div class="audio-meta"><span>原始语音</span><span id="audioStatus">—</span></div><audio id="audio" controls preload="metadata"></audio></div></section>
-    <section class="surface editor" aria-label="标注内容"><div class="editor-top"><h2>标注文本 <span class="subtle" id="tagCount"></span></h2><div class="legend"><span><i class="dot emotion"></i>情感</span><span><i class="dot span"></i>范围</span><span><i class="dot event"></i>事件</span></div></div><div id="transcript" class="transcript"></div><div id="selection" class="selection" hidden></div><details id="reviewHints" class="review-hints" hidden><summary id="reviewHintsSummary">原标注与 QwenASR 参考</summary><p id="reviewWarnings" class="warning"></p><p id="asrReference"></p><p id="manualReference"></p></details></section>
+    <section class="surface editor" aria-label="标注内容"><div class="editor-top"><h2>标注文本 <span class="subtle" id="tagCount"></span></h2><div class="editor-actions"><div class="legend"><span><i class="dot emotion"></i>情感</span><span><i class="dot span"></i>范围</span><span><i class="dot event"></i>事件</span></div><button class="btn" id="addStressButton" type="button" title="新增重音后拖动两端调整范围"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>新增重音</button></div></div><div id="transcript" class="transcript"></div><div id="selection" class="selection" hidden></div><details id="reviewHints" class="review-hints" hidden><summary id="reviewHintsSummary">原标注与 QwenASR 参考</summary><p id="reviewWarnings" class="warning"></p><p id="asrReference"></p><p id="manualReference"></p></details></section>
     <div class="draft-footer"><label><input type="checkbox" id="textMismatch">文本与音频不一致，需另行处理</label><div class="button-row"><button class="icon-btn" id="undoButton" type="button" title="撤销上一步" aria-label="撤销上一步"><svg viewBox="0 0 24 24"><path d="M3 7v6h6"></path><path d="M3 13a9 9 0 1 1 2.7 6.4"></path></svg></button><button class="btn primary" id="submitButton" type="button">提交审核</button><button class="btn primary" id="nextButton" type="button" hidden>随机领取</button></div></div><div class="notice" id="notice" role="status"></div>
   </main>
 </div>
 <dialog id="githubDialog"><div class="dialog-inner"><h2>连接 GitHub 私有仓库</h2><p>输入暗号后即可进入审核。</p><label class="form-field">仓库 <input id="repoInput" type="text" placeholder="owner/repository" autocomplete="off" spellcheck="false"></label><label class="form-field">个人访问令牌 <input id="tokenInput" type="password" autocomplete="new-password" spellcheck="false"></label><p style="margin-top:12px">审核进度会自动保存；刷新后重新输入暗号即可继续。</p><div id="githubError" class="dialog-error" role="alert"></div><div class="dialog-actions"><button class="btn" id="cancelGithub" type="button">取消</button><button class="btn primary" id="connectGithub" type="button">连接</button></div></div></dialog>
-<dialog id="helpDialog"><div class="dialog-inner"><h2>审核与协作</h2><ul class="help-list"><li>点击文字，在出现的位置补字或点垃圾桶删除所选字；可使用撤销恢复。</li><li>直接拖动文字中的标签块；点击标签可切换情感或删除已有标签。句首情感固定，只能切换。</li><li>进入后会自动读取分配任务的 MP3 音频。</li><li>多人共用同一任务池，已完成的句子不会重复分配。</li><li>已领取但未完成的任务保留给领取人，重新连接可继续；不自动过期。</li><li>同一浏览器会保留领取记录，换设备后请联系管理员处理未完成任务。</li></ul><div class="dialog-actions"><button class="btn primary" id="closeHelp" type="button">知道了</button></div></div></dialog>
+<dialog id="helpDialog"><div class="dialog-inner"><h2>审核与协作</h2><ul class="help-list"><li>点击文字，在出现的位置补字或点垃圾桶删除所选字；可使用撤销恢复。</li><li>可新增重音并拖动两端；直接拖动已有标签，点击标签可切换情感或删除。句首情感固定，只能切换。</li><li>进入后会自动读取分配任务的 MP3 音频。</li><li>多人共用同一任务池，已完成的句子不会重复分配。</li><li>已领取但未完成的任务保留给领取人，重新连接可继续；不自动过期。</li><li>同一浏览器会保留领取记录，换设备后请联系管理员处理未完成任务。</li></ul><div class="dialog-actions"><button class="btn primary" id="closeHelp" type="button">知道了</button></div></div></dialog>
 <script id="payload" type="application/json">{"online":true,"repo":"zirrtu/syki-annotation-review-data","demo":[],"full":[],"audio":{},"passwordMode":true,"backend":"https://syki-annotation-review-backend.jxi15089.chatgpt.site"}</script>
 <script>
 'use strict';
@@ -107,31 +107,50 @@ function parseAnnotated(source){
 }
 
 function isUnchanged(original,current){ return JSON.stringify(original)===JSON.stringify(current); }
+function stressOrder(parsed,index){return parsed.labels.reduce((max,l)=>Math.max(max,l.order,l.closeOrder??-1),-1)+1+index*2}
+function stressRanges(labels){return labels.filter(l=>!l.deleted&&l.kind==='span'&&l.type==='stress').map(l=>l.start+':'+l.end).sort()}
+function compareParts(a,b,hasNewStress){
+  if(a.pos!==b.pos)return a.pos-b.pos;
+  if(!hasNewStress)return a.order-b.order;
+  const rank=x=>x.label?.kind==='span'&&x.label.type==='stress'&&x.label.start<x.label.end?(x.part==='end'?0:2):1;
+  const ar=rank(a),br=rank(b);if(ar!==br)return ar-br;
+  if(ar===0)return b.label.start-a.label.start||b.label.order-a.label.order;
+  if(ar===2)return b.label.end-a.label.end||a.label.order-b.label.order;
+  return a.order-b.order;
+}
 function serialize(parsed, labels, chars=parsed.chars){
   if(!Array.isArray(chars)||chars.some(c=>typeof c!=='string'||Array.from(c).length!==1))throw new Error('正文格式不正确');
   if(chars.length>parsed.chars.length+1000)throw new Error('正文过长');
-  if(labels.length!==parsed.labels.length)throw new Error('不能创建新标签');
-  const parts=[];
+  if(!Array.isArray(labels)||labels.length<parsed.labels.length||labels.length>parsed.labels.length+100)throw new Error('只能新增重音标签');
+  const parts=[],created=new Set();
   for(let i=0;i<labels.length;i++){
     const l=labels[i], origin=parsed.labels[i];
-    if(!origin||l.id!==origin.id||l.kind!==origin.kind||l.order!==origin.order||l.closeOrder!==origin.closeOrder)throw new Error('标签身份不匹配');
+    if(!l)throw new Error('标签身份不匹配');
+    if(origin){if(l.id!==origin.id||l.kind!==origin.kind||l.order!==origin.order||l.closeOrder!==origin.closeOrder)throw new Error('标签身份不匹配')}
+    else{
+      const order=stressOrder(parsed,i-parsed.labels.length);
+      if(l.kind!=='span'||l.type!=='stress'||typeof l.id!=='string'||!/^new-stress-(?:[0-9a-f]{32}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i.test(l.id)||created.has(l.id)||l.order!==order||l.closeOrder!==order+1)throw new Error('只能新增重音标签');
+      created.add(l.id);
+    }
     if(typeof l.deleted!=='boolean')throw new Error('标签状态不正确');
-    if(l.kind==='emotion'){
+    if(origin&&l.kind==='emotion'){
       if(!EMOTIONS.includes(l.type)&&l.type!==origin.type)throw new Error('情感类型不合法');
       if(origin.pos===0&&(l.pos!==0||l.deleted))throw new Error('句首情感只能切换，不能移动或删除');
-    }else if(l.type!==origin.type||l.kind==='marker'&&l.raw!==origin.raw)throw new Error('只能更改已有情感标签的类型');
+    }else if(origin&&(l.type!==origin.type||l.kind==='marker'&&l.raw!==origin.raw))throw new Error('只能更改已有情感标签的类型');
     if(l.deleted)continue;
     if(l.kind==='span'){
       if(!Number.isInteger(l.start)||!Number.isInteger(l.end)||l.start<0||l.end>chars.length||l.start>l.end)throw new Error('范围边界不合法');
-      parts.push({pos:l.start,order:l.order,text:'<'+l.type+'>'});
-      parts.push({pos:l.end,order:l.closeOrder,text:'</'+l.type+'>'});
+      if(!origin&&l.start===l.end)throw new Error('新增重音的范围不能为空');
+      parts.push({pos:l.start,order:l.order,text:'<'+l.type+'>',label:l,part:'start'});
+      parts.push({pos:l.end,order:l.closeOrder,text:'</'+l.type+'>',label:l,part:'end'});
     }else{
       if(!Number.isInteger(l.pos)||l.pos<0||l.pos>chars.length)throw new Error('标签位置不合法');
       parts.push({pos:l.pos,order:l.order,text:l.kind==='emotion'?'{'+l.type+'}':l.kind==='marker'?l.raw:'['+l.type+']'});
     }
   }
   if(isUnchanged(parsed.labels,labels)&&chars.join('')===parsed.chars.join(''))return parsed.source;
-  parts.sort((a,b)=>a.pos-b.pos||a.order-b.order);
+  const hasNewStress=labels.slice(parsed.labels.length).some(l=>!l.deleted);
+  parts.sort((a,b)=>compareParts(a,b,hasNewStress));
   let out='', p=0;
   for(let i=0;i<=chars.length;i++){
     while(p<parts.length&&parts[p].pos===i)out+=parts[p++].text;
@@ -140,6 +159,7 @@ function serialize(parsed, labels, chars=parsed.chars){
   const round=parseAnnotated(out);
   if(round.chars.join('')!==chars.join(''))throw new Error('补充文字不能包含标签');
   if(round.labels.length!==labels.filter(x=>!x.deleted).length)throw new Error('标签数量异常');
+  if(hasNewStress&&JSON.stringify(stressRanges(round.labels))!==JSON.stringify(stressRanges(labels)))throw new Error('重音范围交叉，请调整边界');
   return out;
 }
 
@@ -148,8 +168,17 @@ function commitEdit(next){
   try{
     serialize(S.parsed,next,S.chars);
     pushHistory();
-    S.labels=next; saveDraft(); notice(''); renderEditor();
-  }catch(err){notice(err.message);renderEditor()}
+    S.labels=next; saveDraft(); notice(''); renderEditor();return true;
+  }catch(err){notice(err.message);renderEditor();return false}
+}
+function addStress(){
+  if(!S.task||S.pending||S.busy)return;
+  if(S.insertion&&!finishInsertion())return;
+  const start=S.chars.findIndex(c=>/[\p{L}\p{N}]/u.test(c));
+  if(start<0){notice('正文没有可标注的文字。');return}
+  const next=clone(S.labels),order=stressOrder(S.parsed,next.length-S.parsed.labels.length),id='new-stress-'+randomId();
+  next.push({id,kind:'span',type:'stress',start,end:start+1,order,closeOrder:order+1,deleted:false});
+  if(commitEdit(next)){S.selected=id;renderEditor();notice('拖动重音两端，调整覆盖范围。')}
 }
 function moveLabel(id,part,value){
   if(!S.task||S.pending||S.busy)return;
@@ -288,14 +317,15 @@ function renderTranscript(){
   const root=$('transcript');root.replaceChildren();
   if(!S.task){root.append(textNode('div','暂无可审核任务','empty'));return}
   const visible=S.labels.filter(l=>!l.deleted), selected=visible.find(l=>l.id===S.selected);
+  const hasNewStress=S.labels.slice(S.parsed.labels.length).some(l=>!l.deleted);
   const byPos=new Map();
-  function add(pos,label,part,order){if(!byPos.has(pos))byPos.set(pos,[]);byPos.get(pos).push({label,part,order})}
+  function add(pos,label,part,order){if(!byPos.has(pos))byPos.set(pos,[]);byPos.get(pos).push({pos,label,part,order})}
   for(const l of visible){
     if(l.kind==='span'){add(l.start,l,'start',l.order);add(l.end,l,'end',l.closeOrder)}
     else add(l.pos,l,'pos',l.order);
   }
   for(let i=0;i<=S.chars.length;i++){
-    const here=byPos.get(i)||[];here.sort((a,b)=>a.order-b.order);
+    const here=byPos.get(i)||[];here.sort((a,b)=>compareParts(a,b,hasNewStress));
     if(S.insertion&&S.insertion.pos===i&&S.insertion.affinity==='before')root.append(makeInsertionInput());
     for(const item of here)root.append(makeMarker(item.label,item.part,i));
     if(S.insertion&&S.insertion.pos===i&&S.insertion.affinity==='after')root.append(makeInsertionInput());
@@ -321,7 +351,7 @@ function renderSelection(){
     const remove=document.createElement('button');remove.type='button';remove.className='btn danger';remove.id='deleteLabel';remove.title='删除该标签';remove.setAttribute('aria-label','删除标签');remove.innerHTML=ICONS.trash;remove.append(document.createTextNode('删除'));remove.disabled=Boolean(S.pending||S.busy);remove.addEventListener('click',()=>toggleDelete(label.id));root.append(remove);
   }
 }
-function renderEditor(){renderTranscript();renderSelection();$('tagCount').textContent=S.task?`· ${S.labels.filter(x=>!x.deleted).length} 个标签`:'';$('undoButton').disabled=!S.task||!S.history.length||Boolean(S.pending||S.busy)}
+function renderEditor(){renderTranscript();renderSelection();$('tagCount').textContent=S.task?`· ${S.labels.filter(x=>!x.deleted).length} 个标签`:'';$('undoButton').disabled=!S.task||!S.history.length||Boolean(S.pending||S.busy);$('addStressButton').disabled=!S.task||Boolean(S.pending||S.busy)}
 
 window.addEventListener('pointermove',event=>{
   if(!S.drag||!S.task||event.pointerId!==S.drag.pointerId)return;
@@ -711,6 +741,7 @@ $('fullSet').addEventListener('click',()=>switchDataset('full').catch(err=>notic
 $('audioFolder').addEventListener('change',event=>bindAudio(event.target.files));
 $('nextButton').addEventListener('click',claimAndLoad);
 $('submitButton').addEventListener('click',submitTask);
+$('addStressButton').addEventListener('click',addStress);
 $('textMismatch').addEventListener('change',saveDraft);
 $('exportButton').addEventListener('click',exportResults);
 $('undoButton').addEventListener('click',()=>{if(S.insertion){cancelInsertion();return}if(!S.history.length||S.pending||S.busy)return;const previous=S.history.pop();S.labels=previous.labels;S.chars=previous.chars;saveDraft();notice('');renderEditor()});
